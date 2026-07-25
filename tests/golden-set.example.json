@@ -1,0 +1,12 @@
+{
+  "description": "复制为 golden-set.local.json，并填入匿名真实样本；该文件不提交 Git。",
+  "samples": [
+    {
+      "id": "sample-001",
+      "imagePaths": ["private/sample-001-page-1.jpg"],
+      "groundTruth": "此处填写人工双人校验后的电子稿",
+      "qualityTags": ["工整", "正拍"],
+      "questionId": "q-governance"
+    }
+  ]
+}
