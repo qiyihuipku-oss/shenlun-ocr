@@ -1,5 +1,6 @@
 export type SubmissionStatus =
   | "uploaded"
+  | "quality_check"
   | "ocr_pending"
   | "ocr_processing"
   | "needs_review"
@@ -27,6 +28,55 @@ export type OcrBlock = {
   confidence: number;
   uncertain?: boolean;
   box: { x: number; y: number; width: number; height: number };
+  provider?: string;
+  runId?: string;
+  imageVariant?: "original" | "normalized";
+  confidenceSource?: "provider" | "character_average" | "heuristic";
+  coordinateSpace?: "pixels" | "percent";
+};
+
+export type ImageQuality = {
+  width: number;
+  height: number;
+  blurScore: number;
+  brightness: number;
+  darkRatio: number;
+  lightRatio: number;
+  issues: Array<"low_resolution" | "blur" | "underexposed" | "overexposed" | "page_edge" | "skew" | "shadow">;
+  canContinue: boolean;
+};
+
+export type OcrCandidate = {
+  id: string;
+  blockId: string;
+  provider: "baidu" | "paddle" | "context";
+  imageVariant: "original" | "normalized";
+  text: string;
+  confidence: number;
+  box: OcrBlock["box"];
+  runId: string;
+};
+
+export type OcrDecision = {
+  blockId: string;
+  text: string;
+  alternatives: Array<{ text: string; provider: string; confidence: number }>;
+  confidence: number;
+  requiresReview: boolean;
+  reasonCodes: Array<"low_confidence" | "engine_disagreement" | "material_term" | "image_quality">;
+  sourceProviders: string[];
+};
+
+export type CorrectionEvent = {
+  id: string;
+  submissionId: string;
+  blockId?: string;
+  before: string;
+  after: string;
+  acceptedSuggestion?: string;
+  consentScope: "none" | "evaluation" | "improvement";
+  modelVersion: string;
+  createdAt: string;
 };
 
 export type OcrSuggestion = {
@@ -68,6 +118,9 @@ export type SubmissionSnapshot = {
   status: SubmissionStatus;
   pages: Array<{ key: string; order: number; rotation: number }>;
   blocks: OcrBlock[];
+  decisions?: OcrDecision[];
+  quality?: ImageQuality[];
+  progress?: number;
   transcript: string;
   report?: GradingReport;
   failureReason?: string;

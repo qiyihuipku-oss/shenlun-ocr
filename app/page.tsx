@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { WorkspaceApp } from "./workspace-app";
+import { LandingPage } from "./landing-page";
 
 export const metadata: Metadata = {
-  title: "申论镜｜手写申论 OCR 与循证批改",
-  description:
-    "把手写申论转成可核对的电子稿，并基于题目材料与评分点给出有证据的估分和修改建议。",
+  title: "申论镜｜让每一个识别结果都有据可查",
+  description: "手写申论多页 OCR、原图逐行校对、疑难行复核与循证批改。",
 };
 
 export default function Home() {
-  return <WorkspaceApp />;
+  return <LandingPage />;
 }

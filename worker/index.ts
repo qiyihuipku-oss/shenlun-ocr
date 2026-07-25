@@ -11,6 +11,9 @@ interface Env {
   QIANFAN_API_KEY?: string;
   GRADING_MODEL?: string;
   ADMIN_EMAILS?: string;
+  PADDLE_OCR_ENDPOINT?: string;
+  PADDLE_OCR_API_KEY?: string;
+  OCR_SECONDARY_MODE?: "off" | "shadow" | "assist";
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {

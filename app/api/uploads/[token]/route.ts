@@ -1,9 +1,11 @@
-import { ensureSchema, ownerIdFrom, runtimeEnv } from "../../../../lib/server";
+import { apiError, ensureSchema, requireOwnerId, runtimeEnv } from "../../../../lib/server";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
+  try {
+  const ownerId = requireOwnerId(request);
   if (!runtimeEnv.DB || !runtimeEnv.UPLOADS) {
     return Response.json(
       { error: "当前是界面演示环境，尚未绑定私有对象存储" },
@@ -15,7 +17,7 @@ export async function PUT(
   const record = await runtimeEnv.DB.prepare(
     "SELECT * FROM upload_tokens WHERE token = ? AND owner_id = ? LIMIT 1",
   )
-    .bind(token, ownerIdFrom(request))
+    .bind(token, ownerId)
     .first<Record<string, string | number | null>>();
 
   if (!record || record.used_at || Date.parse(String(record.expires_at)) < Date.now()) {
@@ -31,7 +33,7 @@ export async function PUT(
   await runtimeEnv.UPLOADS.put(String(record.object_key), body, {
     httpMetadata: { contentType },
     customMetadata: {
-      ownerId: ownerIdFrom(request),
+      ownerId,
       retentionUntil: new Date(Date.now() + 30 * 86400_000).toISOString(),
     },
   });
@@ -39,4 +41,7 @@ export async function PUT(
     .bind(new Date().toISOString(), token)
     .run();
   return Response.json({ objectKey: record.object_key }, { status: 201 });
+  } catch (error) {
+    return apiError(error);
+  }
 }

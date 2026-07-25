@@ -27,6 +27,40 @@ export const demoQuestions: Question[] = [
   },
 ];
 
+export const demoGradingContexts: Record<string, {
+  material: string;
+  referenceAnswer: string;
+  rubric: Array<{ id: string; title: string; max: number }>;
+}> = {
+  "q-governance": {
+    material:
+      "自有模拟材料：部分基层单位存在职责交叉、数据平台重复建设、资源难以下沉、群众参与渠道单一和考核留痕过多等问题。多地通过党建联席、网格服务、数据共享、议事协商和结果反馈改善治理效能。",
+    referenceAnswer:
+      "围绕协同机制、资源下沉、数字赋能、群众参与和基层减负提出对应分析与建议，做到问题和措施一一对应。",
+    rubric: [
+      { id: "R1", title: "指出部门协同问题", max: 8 },
+      { id: "R2", title: "提出资源或服务下沉", max: 8 },
+      { id: "R3", title: "指出数字平台重复建设", max: 8 },
+      { id: "R4", title: "完善群众参与渠道", max: 8 },
+      { id: "R5", title: "提出基层减负或考核优化", max: 8 },
+      { id: "R6", title: "结构清晰、问题措施对应", max: 10 },
+    ],
+  },
+  "q-rural": {
+    material:
+      "自有模拟材料：部分乡村文化空间存在建成后闲置、活动内容与村民需求错位、运营人才不足、资金来源单一和村民参与不足等问题。",
+    referenceAnswer:
+      "概括设施利用、内容供给、人才队伍、运营机制和村民共建五方面问题。",
+    rubric: [
+      { id: "R1", title: "设施利用率低", max: 6 },
+      { id: "R2", title: "内容供需错位", max: 6 },
+      { id: "R3", title: "人才不足", max: 6 },
+      { id: "R4", title: "运营机制不健全", max: 6 },
+      { id: "R5", title: "村民参与不足", max: 6 },
+    ],
+  },
+};
+
 export const demoBlocks: OcrBlock[] = [
   {
     id: "b1",

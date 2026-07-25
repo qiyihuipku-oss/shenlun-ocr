@@ -18,13 +18,13 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "申论镜｜把纸上的思考，变成看得见的进步",
       description: "手写申论 OCR 与循证批改",
       type: "website",
-      images: [{ url: `${origin}/og.png`, width: 1200, height: 630, alt: "申论镜产品预览" }],
+      images: [{ url: `${origin}/og-v2.png`, width: 1200, height: 630, alt: "申论镜动态答卷与循证批改" }],
     },
     twitter: {
       card: "summary_large_image",
       title: "申论镜｜把纸上的思考，变成看得见的进步",
       description: "手写申论 OCR 与循证批改",
-      images: [`${origin}/og.png`],
+      images: [`${origin}/og-v2.png`],
     },
   };
 }

@@ -1,9 +1,11 @@
-import { ensureSchema, newId, ownerIdFrom, runtimeEnv } from "../../../../lib/server";
+import { apiError, ensureSchema, newId, requireOwnerId, runtimeEnv } from "../../../../lib/server";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxBytes = 10 * 1024 * 1024;
 
 export async function POST(request: Request) {
+  try {
+  const ownerId = requireOwnerId(request);
   const input = (await request.json()) as { filename?: string; contentType?: string; size?: number };
   const contentType = input.contentType || "";
   const size = Number(input.size || 0);
@@ -16,7 +18,7 @@ export async function POST(request: Request) {
 
   const token = newId("upload");
   const extension = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
-  const objectKey = `answers/${ownerIdFrom(request)}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
+  const objectKey = `answers/${ownerId}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extension}`;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 10 * 60_000).toISOString();
 
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
       (token, owner_id, object_key, content_type, max_bytes, expires_at, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `)
-      .bind(token, ownerIdFrom(request), objectKey, contentType, maxBytes, expiresAt, now.toISOString())
+      .bind(token, ownerId, objectKey, contentType, maxBytes, expiresAt, now.toISOString())
       .run();
   }
 
@@ -38,4 +40,7 @@ export async function POST(request: Request) {
     method: "PUT",
     expiresAt,
   });
+  } catch (error) {
+    return apiError(error);
+  }
 }

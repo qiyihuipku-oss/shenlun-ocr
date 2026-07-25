@@ -35,6 +35,10 @@ export const submissions = sqliteTable("submissions", {
   failureReason: text("failure_reason"),
   promptVersion: text("prompt_version"),
   modelRunId: text("model_run_id"),
+  qualityJson: text("quality_json").notNull().default("[]"),
+  decisionsJson: text("decisions_json").notNull().default("[]"),
+  ocrProgress: integer("ocr_progress").notNull().default(0),
+  confirmedAt: text("confirmed_at"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 });
@@ -67,5 +71,62 @@ export const modelRuns = sqliteTable("model_runs", {
   status: text("status").notNull(),
   usageJson: text("usage_json"),
   error: text("error"),
+  createdAt: text("created_at").notNull(),
+});
+
+export const ocrRuns = sqliteTable("ocr_runs", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id").notNull(),
+  ownerId: text("owner_id").notNull(),
+  provider: text("provider").notNull(),
+  mode: text("mode").notNull().default("primary"),
+  status: text("status").notNull(),
+  scopeJson: text("scope_json").notNull().default("{}"),
+  providerTasksJson: text("provider_tasks_json").notNull().default("[]"),
+  attempts: integer("attempts").notNull().default(0),
+  leaseUntil: text("lease_until"),
+  nextRetryAt: text("next_retry_at"),
+  error: text("error"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const ocrCandidates = sqliteTable("ocr_candidates", {
+  id: text("id").primaryKey(),
+  runId: text("run_id").notNull(),
+  submissionId: text("submission_id").notNull(),
+  blockId: text("block_id").notNull(),
+  provider: text("provider").notNull(),
+  imageVariant: text("image_variant").notNull(),
+  text: text("text").notNull(),
+  confidence: integer("confidence_milli").notNull(),
+  boxJson: text("box_json").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const correctionEvents = sqliteTable("correction_events", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id").notNull(),
+  ownerId: text("owner_id").notNull(),
+  blockId: text("block_id"),
+  before: text("before_text").notNull(),
+  after: text("after_text").notNull(),
+  acceptedSuggestion: text("accepted_suggestion"),
+  consentScope: text("consent_scope").notNull().default("none"),
+  modelVersion: text("model_version").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const dataConsents = sqliteTable("data_consents", {
+  ownerId: text("owner_id").primaryKey(),
+  scope: text("scope").notNull().default("none"),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const qualityChecks = sqliteTable("quality_checks", {
+  id: text("id").primaryKey(),
+  submissionId: text("submission_id").notNull(),
+  pageOrder: integer("page_order").notNull(),
+  metricsJson: text("metrics_json").notNull(),
   createdAt: text("created_at").notNull(),
 });
