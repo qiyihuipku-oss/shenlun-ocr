@@ -12,6 +12,8 @@ test("申论镜 has a public product story and a protected workspace", async () 
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
   assert.match(page, /LandingPage/);
+  assert.match(page, /shenlun-ocr\.qiyihuipku\.chatgpt\.site\/app/);
+  assert.match(landing, /href=\{workspaceHref\}/);
   assert.match(landing, /一张卷子 · 三次看见/);
   assert.match(landing, /requestAnimationFrame/);
   assert.match(landing, /拍下答卷/);

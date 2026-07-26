@@ -23,7 +23,7 @@ const scenes = [
   },
 ];
 
-export function LandingPage() {
+export function LandingPage({ workspaceHref = "/app" }: { workspaceHref?: string }) {
   const storyRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
   const [mobileScene, setMobileScene] = useState(0);
@@ -101,7 +101,7 @@ export function LandingPage() {
           <a href="#moat">准确率</a>
           <a href="#evidence">批改原则</a>
         </nav>
-        <a className="landing-login" href="/app">进入批改台 <span>↗</span></a>
+        <a className="landing-login" href={workspaceHref}>进入批改台 <span>↗</span></a>
       </header>
 
       <section className="landing-intro" id="top">
@@ -110,7 +110,7 @@ export function LandingPage() {
           <h1>看清你写下的，<br /><em>才知道下一次怎么写。</em></h1>
           <p>面向申论答卷的高准确率 OCR 与循证批改。先把原文认准，再谈得分与改进。</p>
           <div className="landing-actions">
-            <a className="landing-primary" href="/app">上传一份答卷 <span>→</span></a>
+            <a className="landing-primary" href={workspaceHref}>上传一份答卷 <span>→</span></a>
             <a className="landing-secondary" href="#story">观看完整演示</a>
           </div>
           <div className="landing-trust">
@@ -225,14 +225,14 @@ export function LandingPage() {
           <span className="section-index">批改的边界</span>
           <h2>不替你写得更好，<br />先诚实地告诉你写了什么。</h2>
           <p>没有原文证据，就只能标记为遗漏或不确定。分数只给区间，同时保留题目版本、提示词版本与模型运行记录。</p>
-          <a className="text-link" href="/app">开始第一次练习 <span>→</span></a>
+          <a className="text-link" href={workspaceHref}>开始第一次练习 <span>→</span></a>
         </div>
       </section>
 
       <section className="landing-cta">
         <span className="eyebrow">YOUR NEXT ANSWER STARTS HERE</span>
         <h2>下一次落笔之前，<br />先照见这一次。</h2>
-        <a className="landing-primary" href="/app">进入申论镜 <span>→</span></a>
+        <a className="landing-primary" href={workspaceHref}>进入申论镜 <span>→</span></a>
       </section>
 
       <footer className="landing-footer">
