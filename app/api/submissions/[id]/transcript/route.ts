@@ -16,7 +16,7 @@ export async function PATCH(
     return Response.json({ error: "电子稿长度超出首版限制" }, { status: 400 });
   }
   const { id } = await params;
-  return Response.json(await saveTranscript(id, requireOwnerId(request), transcript, input));
+  return Response.json(await saveTranscript(id, await requireOwnerId(request), transcript, input));
   } catch (error) {
     return apiError(error);
   }

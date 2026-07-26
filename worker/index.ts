@@ -5,7 +5,10 @@ import handler from "vinext/server/app-router-entry";
 interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
-  UPLOADS: R2Bucket;
+  UPLOADS?: R2Bucket;
+  UPLOADS_KV?: KVNamespace;
+  APP_INVITE_CODE?: string;
+  APP_SESSION_SECRET?: string;
   BAIDU_OCR_API_KEY?: string;
   BAIDU_OCR_SECRET_KEY?: string;
   QIANFAN_API_KEY?: string;

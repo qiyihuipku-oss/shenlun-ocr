@@ -1,10 +1,18 @@
 import { env } from "cloudflare:workers";
+import {
+  readCookie,
+  SESSION_COOKIE_NAME,
+  verifySessionToken,
+} from "./auth-session";
 import { demoGradingContexts, demoQuestions } from "./demo";
 import type { GradingReport, ImageQuality, SubmissionSnapshot } from "./types";
 
 type RuntimeEnv = {
   DB?: D1Database;
   UPLOADS?: R2Bucket;
+  UPLOADS_KV?: KVNamespace;
+  APP_INVITE_CODE?: string;
+  APP_SESSION_SECRET?: string;
   BAIDU_OCR_API_KEY?: string;
   BAIDU_OCR_SECRET_KEY?: string;
   QIANFAN_API_KEY?: string;
@@ -19,12 +27,20 @@ export const runtimeEnv = env as unknown as RuntimeEnv;
 
 let schemaReady: Promise<void> | undefined;
 
-export function ownerIdFrom(request: Request) {
-  return request.headers.get("oai-authenticated-user-email")?.trim().toLowerCase() || null;
+export async function ownerIdFrom(request: Request) {
+  const chatGPTEmail = request.headers
+    .get("oai-authenticated-user-email")
+    ?.trim()
+    .toLowerCase();
+  if (chatGPTEmail) return chatGPTEmail;
+  return verifySessionToken(
+    readCookie(request.headers.get("cookie"), SESSION_COOKIE_NAME),
+    runtimeEnv.APP_SESSION_SECRET,
+  );
 }
 
-export function requireOwnerId(request: Request) {
-  const ownerId = ownerIdFrom(request);
+export async function requireOwnerId(request: Request) {
+  const ownerId = await ownerIdFrom(request);
   if (!ownerId) throw new AuthenticationRequiredError();
   return ownerId;
 }

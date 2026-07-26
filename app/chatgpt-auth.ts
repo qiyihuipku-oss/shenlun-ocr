@@ -1,10 +1,17 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import {
+  authRuntimeEnv,
+  readCookie,
+  SESSION_COOKIE_NAME,
+  verifySessionToken,
+} from "../lib/auth-session";
 
 export type ChatGPTUser = {
   displayName: string;
   email: string;
   fullName: string | null;
+  provider: "chatgpt" | "invite";
 };
 
 const USER_EMAIL_HEADER = "oai-authenticated-user-email";
@@ -19,19 +26,32 @@ const CALLBACK_PATH = "/callback";
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   const requestHeaders = await headers();
   const email = requestHeaders.get(USER_EMAIL_HEADER);
-  if (!email) return null;
+  if (email) {
+    const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
+    const fullName =
+      encodedFullName &&
+      requestHeaders.get(USER_FULL_NAME_ENCODING_HEADER) === PERCENT_ENCODED_UTF8
+        ? safeDecodeURIComponent(encodedFullName)
+        : null;
 
-  const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get(USER_FULL_NAME_ENCODING_HEADER) === PERCENT_ENCODED_UTF8
-      ? safeDecodeURIComponent(encodedFullName)
-      : null;
+    return {
+      displayName: fullName ?? email,
+      email,
+      fullName,
+      provider: "chatgpt",
+    };
+  }
 
+  const ownerId = await verifySessionToken(
+    readCookie(requestHeaders.get("cookie"), SESSION_COOKIE_NAME),
+    authRuntimeEnv.APP_SESSION_SECRET,
+  );
+  if (!ownerId) return null;
   return {
-    displayName: fullName ?? email,
-    email,
-    fullName,
+    displayName: "内测用户",
+    email: ownerId,
+    fullName: null,
+    provider: "invite",
   };
 }
 
@@ -41,6 +61,14 @@ export async function requireChatGPTUser(
   const user = await getChatGPTUser();
   if (user) return user;
 
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ??
+    requestHeaders.get("host") ??
+    "";
+  if (host.endsWith(".workers.dev")) {
+    redirect(`/login?return_to=${encodeURIComponent(safeRelativeReturnPath(returnTo))}`);
+  }
   redirect(chatGPTSignInPath(returnTo));
 }
 
@@ -54,7 +82,7 @@ export function chatGPTSignOutPath(returnTo = "/"): string {
   return `${SIGN_OUT_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
 }
 
-function safeRelativeReturnPath(value: string): string {
+export function safeRelativeReturnPath(value: string): string {
   if (!value.startsWith("/") || value.startsWith("//")) return "/";
 
   let url: URL;

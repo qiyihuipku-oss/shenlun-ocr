@@ -1,12 +1,13 @@
 import { apiError, ensureSchema, requireOwnerId, runtimeEnv } from "../../../../lib/server";
+import { hasPrivateStorage, putPrivateObject } from "../../../../lib/providers";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   try {
-  const ownerId = requireOwnerId(request);
-  if (!runtimeEnv.DB || !runtimeEnv.UPLOADS) {
+  const ownerId = await requireOwnerId(request);
+  if (!runtimeEnv.DB || !hasPrivateStorage()) {
     return Response.json(
       { error: "当前是界面演示环境，尚未绑定私有对象存储" },
       { status: 503 },
@@ -30,13 +31,7 @@ export async function PUT(
     return Response.json({ error: "图片类型或大小不符合要求" }, { status: 400 });
   }
 
-  await runtimeEnv.UPLOADS.put(String(record.object_key), body, {
-    httpMetadata: { contentType },
-    customMetadata: {
-      ownerId,
-      retentionUntil: new Date(Date.now() + 30 * 86400_000).toISOString(),
-    },
-  });
+  await putPrivateObject(String(record.object_key), body, contentType, ownerId);
   await runtimeEnv.DB.prepare("UPDATE upload_tokens SET used_at = ? WHERE token = ?")
     .bind(new Date().toISOString(), token)
     .run();

@@ -1,4 +1,10 @@
-import { BaiduCompositionOcrProvider, PaddleOcrProvider, reconcileOcrBlocks } from "./providers";
+import {
+  BaiduCompositionOcrProvider,
+  getPrivateObject,
+  hasPrivateStorage,
+  PaddleOcrProvider,
+  reconcileOcrBlocks,
+} from "./providers";
 import {
   ensureSchema,
   getSubmission,
@@ -21,7 +27,7 @@ export async function startOcrRun(
   ownerId: string,
   scope: { page?: number; blockId?: string } = {},
 ) {
-  if (!runtimeEnv.DB || !runtimeEnv.UPLOADS) throw new Error("OCR 所需的数据库或私有存储尚未绑定");
+  if (!runtimeEnv.DB || !hasPrivateStorage()) throw new Error("OCR 所需的数据库或私有存储尚未绑定");
   await ensureSchema();
   const submission = await getSubmission(submissionId, ownerId);
   if (!submission) throw new Error("未找到提交记录");
@@ -57,13 +63,12 @@ export async function startOcrRun(
   try {
     const tasks: ProviderTask[] = [];
     for (const [pageIndex, page] of pages.entries()) {
-      const object = await runtimeEnv.UPLOADS.get(page.key);
+      const object = await getPrivateObject(page.key);
       if (!object) throw new Error(`第 ${page.order} 页原图不存在`);
-      const bytes = await object.arrayBuffer();
       const result = await provider.submit({
         page: page.order,
-        bytes,
-        contentType: object.httpMetadata?.contentType || "image/jpeg",
+        bytes: object.bytes,
+        contentType: object.contentType,
       });
       tasks.push({
         page: page.order,
@@ -197,18 +202,18 @@ async function runSecondaryShadow(pages: PageRef[], primary: OcrBlock[]) {
   if (
     !runtimeEnv.PADDLE_OCR_ENDPOINT ||
     runtimeEnv.OCR_SECONDARY_MODE === "off" ||
-    !runtimeEnv.UPLOADS
+    !hasPrivateStorage()
   ) return [] as OcrBlock[];
   const lowPages = new Set(primary.filter((block) => block.confidence < 0.92).map((block) => block.page));
   const provider = new PaddleOcrProvider();
   const secondary: OcrBlock[] = [];
   for (const page of pages.filter((item) => lowPages.has(item.order))) {
-    const object = await runtimeEnv.UPLOADS.get(page.key);
+    const object = await getPrivateObject(page.key);
     if (!object) continue;
     const result = await provider.submit({
       page: page.order,
-      bytes: await object.arrayBuffer(),
-      contentType: object.httpMetadata?.contentType || "image/jpeg",
+      bytes: object.bytes,
+      contentType: object.contentType,
     });
     secondary.push(...(result.blocks || []));
   }

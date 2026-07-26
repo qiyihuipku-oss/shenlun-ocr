@@ -35,22 +35,95 @@ export interface GradingProvider {
   }): Promise<GradingReport>;
 }
 
-export class R2StorageProvider implements StorageProvider {
-  async put(key: string, bytes: ArrayBuffer, contentType: string) {
-    if (!runtimeEnv.UPLOADS) throw new Error("R2 binding UPLOADS is unavailable");
+type StoredObject = {
+  bytes: ArrayBuffer;
+  contentType: string;
+};
+
+type KvObjectMetadata = {
+  contentType?: string;
+  ownerId?: string;
+  retentionUntil?: string;
+};
+
+const PRIVATE_OBJECT_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+export function hasPrivateStorage() {
+  return Boolean(runtimeEnv.UPLOADS || runtimeEnv.UPLOADS_KV);
+}
+
+export async function putPrivateObject(
+  key: string,
+  bytes: ArrayBuffer,
+  contentType: string,
+  ownerId?: string,
+) {
+  const retentionUntil = new Date(
+    Date.now() + PRIVATE_OBJECT_TTL_SECONDS * 1000,
+  ).toISOString();
+  if (runtimeEnv.UPLOADS) {
     await runtimeEnv.UPLOADS.put(key, bytes, {
       httpMetadata: { contentType },
-      customMetadata: { retentionUntil: new Date(Date.now() + 30 * 86400_000).toISOString() },
+      customMetadata: { ownerId: ownerId || "", retentionUntil },
     });
+    return;
+  }
+  if (runtimeEnv.UPLOADS_KV) {
+    await runtimeEnv.UPLOADS_KV.put(key, bytes, {
+      expirationTtl: PRIVATE_OBJECT_TTL_SECONDS,
+      metadata: { contentType, ownerId, retentionUntil } satisfies KvObjectMetadata,
+    });
+    return;
+  }
+  throw new Error("私有图片存储尚未绑定");
+}
+
+export async function getPrivateObject(
+  key: string,
+): Promise<StoredObject | null> {
+  if (runtimeEnv.UPLOADS) {
+    const object = await runtimeEnv.UPLOADS.get(key);
+    if (!object) return null;
+    return {
+      bytes: await object.arrayBuffer(),
+      contentType: object.httpMetadata?.contentType || "image/jpeg",
+    };
+  }
+  if (runtimeEnv.UPLOADS_KV) {
+    const object =
+      await runtimeEnv.UPLOADS_KV.getWithMetadata<KvObjectMetadata>(
+        key,
+        "arrayBuffer",
+      );
+    if (!object.value) return null;
+    return {
+      bytes: object.value,
+      contentType: object.metadata?.contentType || "image/jpeg",
+    };
+  }
+  return null;
+}
+
+export async function deletePrivateObject(key: string) {
+  if (runtimeEnv.UPLOADS) {
+    await runtimeEnv.UPLOADS.delete(key);
+    return;
+  }
+  await runtimeEnv.UPLOADS_KV?.delete(key);
+}
+
+export class R2StorageProvider implements StorageProvider {
+  async put(key: string, bytes: ArrayBuffer, contentType: string) {
+    await putPrivateObject(key, bytes, contentType);
   }
 
   async get(key: string) {
-    const object = await runtimeEnv.UPLOADS?.get(key);
-    return object ? object.arrayBuffer() : null;
+    const object = await getPrivateObject(key);
+    return object?.bytes || null;
   }
 
   async delete(key: string) {
-    await runtimeEnv.UPLOADS?.delete(key);
+    await deletePrivateObject(key);
   }
 }
 

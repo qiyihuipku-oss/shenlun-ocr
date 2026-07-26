@@ -39,7 +39,13 @@ function Icon({ name }: { name: "upload" | "scan" | "evidence" | "history" | "sh
   return <span aria-hidden="true">{icons[name]}</span>;
 }
 
-export function WorkspaceApp({ userName }: { userName?: string }) {
+export function WorkspaceApp({
+  userName,
+  signOutHref = "/signout-with-chatgpt?return_to=/",
+}: {
+  userName?: string;
+  signOutHref?: string;
+}) {
   const [activeView, setActiveView] = useState<"workspace" | "history">("workspace");
   const [questionId, setQuestionId] = useState(demoQuestions[0].id);
   const [pages, setPages] = useState<PageImage[]>([]);
@@ -233,7 +239,7 @@ export function WorkspaceApp({ userName }: { userName?: string }) {
         </nav>
         <div className="header-actions">
           <Link className="beta-tag" href="/">产品主页</Link>
-          <a className="avatar" href="/signout-with-chatgpt?return_to=/" aria-label={`退出当前用户：${userName || "考生"}`}>
+          <a className="avatar" href={signOutHref} aria-label={`退出当前用户：${userName || "考生"}`}>
             {(userName || "考").slice(0, 1)}
           </a>
         </div>

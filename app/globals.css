@@ -434,3 +434,68 @@ footer { min-height: 66px; padding: 0 clamp(22px,5vw,82px); display: flex; justi
   .scan-beam { animation: none !important; }.paper-story { height: auto; padding: 90px 0; }
   .story-sticky { position: relative; min-height: 0; }
 }
+
+.auth-page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 96px 24px 48px;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(165, 60, 48, .09), transparent 34%),
+    linear-gradient(135deg, #f7f3e9, #eee8dc);
+}
+.auth-page > .brand {
+  position: absolute;
+  top: 28px;
+  left: clamp(24px, 5vw, 72px);
+}
+.auth-card {
+  width: min(100%, 480px);
+  padding: clamp(32px, 6vw, 56px);
+  background: rgba(255, 253, 248, .92);
+  border: 1px solid rgba(29, 48, 55, .14);
+  box-shadow: 0 28px 80px rgba(29, 48, 55, .12);
+  backdrop-filter: blur(18px);
+}
+.auth-card h1 {
+  margin: 18px 0 14px;
+  color: var(--ink);
+  font: 700 clamp(36px, 7vw, 52px)/1.1 "STSong", "SimSun", serif;
+}
+.auth-card > p {
+  margin: 0 0 28px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.auth-card form { display: grid; gap: 12px; margin-bottom: 22px; }
+.auth-card label { color: var(--ink); font-size: 12px; font-weight: 700; }
+.auth-card input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 15px;
+  color: var(--ink);
+  background: #fffdf8;
+  border: 1px solid rgba(29, 48, 55, .2);
+  border-radius: 0;
+  outline: none;
+}
+.auth-card input:focus {
+  border-color: var(--cinnabar);
+  box-shadow: 0 0 0 3px rgba(165, 60, 48, .1);
+}
+.auth-card .landing-primary {
+  justify-content: space-between;
+  margin-top: 8px;
+  border: 0;
+  cursor: pointer;
+}
+.auth-card > small { color: var(--ink-soft); line-height: 1.7; }
+.auth-error {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  color: #8d3027;
+  background: rgba(165, 60, 48, .08);
+  border-left: 3px solid var(--cinnabar);
+  font-size: 13px;
+}

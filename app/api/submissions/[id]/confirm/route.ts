@@ -6,7 +6,7 @@ export async function POST(
 ) {
   try {
   const { id } = await params;
-  return Response.json(await confirmSubmission(id, requireOwnerId(request)));
+  return Response.json(await confirmSubmission(id, await requireOwnerId(request)));
   } catch (error) {
     return apiError(error);
   }

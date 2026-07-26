@@ -2,7 +2,7 @@ import { apiError, createSubmission, ensureSchema, requireOwnerId, runtimeEnv } 
 
 export async function GET(request: Request) {
   try {
-    const ownerId = requireOwnerId(request);
+    const ownerId = await requireOwnerId(request);
     if (!runtimeEnv.DB) return Response.json({ submissions: [] });
     await ensureSchema();
     const rows = await runtimeEnv.DB.prepare(`
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "页面顺序不能重复" }, { status: 400 });
   }
   try {
-    const submission = await createSubmission(requireOwnerId(request), {
+    const submission = await createSubmission(await requireOwnerId(request), {
       questionId: input.questionId,
       pages: [...input.pages].sort((a, b) => a.order - b.order),
       quality: input.quality as never,

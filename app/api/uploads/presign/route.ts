@@ -5,7 +5,7 @@ const maxBytes = 10 * 1024 * 1024;
 
 export async function POST(request: Request) {
   try {
-  const ownerId = requireOwnerId(request);
+  const ownerId = await requireOwnerId(request);
   const input = (await request.json()) as { filename?: string; contentType?: string; size?: number };
   const contentType = input.contentType || "";
   const size = Number(input.size || 0);

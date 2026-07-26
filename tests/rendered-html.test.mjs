@@ -12,7 +12,7 @@ test("申论镜 has a public product story and a protected workspace", async () 
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
   assert.match(page, /LandingPage/);
-  assert.match(page, /shenlun-ocr\.qiyihuipku\.chatgpt\.site\/app/);
+  assert.doesNotMatch(page, /chatgpt\.site\/app/);
   assert.match(landing, /href=\{workspaceHref\}/);
   assert.match(landing, /一张卷子 · 三次看见/);
   assert.match(landing, /requestAnimationFrame/);
@@ -20,6 +20,7 @@ test("申论镜 has a public product story and a protected workspace", async () 
   assert.match(landing, /还原原文/);
   assert.match(landing, /看见问题/);
   assert.match(appPage, /requireChatGPTUser\("\/app"\)/);
+  assert.match(appPage, /\/api\/auth\/logout/);
   assert.match(workspace, /申论镜/);
   assert.match(workspace, /上传答卷/);
   assert.match(workspace, /校对原文/);
@@ -55,5 +56,5 @@ test("upload route enforces type, size, expiry and one-time use", async () => {
   assert.match(presign, /10 \* 1024 \* 1024/);
   assert.match(upload, /record\.used_at/);
   assert.match(upload, /Date\.parse/);
-  assert.match(upload, /runtimeEnv\.UPLOADS\.put/);
+  assert.match(upload, /putPrivateObject/);
 });

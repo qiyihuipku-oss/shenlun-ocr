@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireChatGPTUser } from "../chatgpt-auth";
+import { chatGPTSignOutPath, requireChatGPTUser } from "../chatgpt-auth";
 import { WorkspaceApp } from "../workspace-app";
 
 export const dynamic = "force-dynamic";
@@ -11,5 +11,9 @@ export const metadata: Metadata = {
 
 export default async function AppPage() {
   const user = await requireChatGPTUser("/app");
-  return <WorkspaceApp userName={user.displayName} />;
+  const signOutHref =
+    user.provider === "invite"
+      ? "/api/auth/logout"
+      : chatGPTSignOutPath("/");
+  return <WorkspaceApp userName={user.displayName} signOutHref={signOutHref} />;
 }

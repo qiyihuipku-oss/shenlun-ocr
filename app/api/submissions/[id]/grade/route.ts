@@ -6,7 +6,7 @@ export async function POST(
 ) {
   try {
   const { id } = await params;
-  const report = await gradeSubmission(id, requireOwnerId(request));
+  const report = await gradeSubmission(id, await requireOwnerId(request));
   return Response.json({ report });
   } catch (error) {
     return apiError(error);

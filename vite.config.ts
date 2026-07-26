@@ -6,6 +6,7 @@ import { sites } from "./build/sites-vite-plugin";
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 const CLOUDFLARE_DATABASE_ID = "aaee091f-edd7-409a-956a-a11e7ae645f3";
+const CLOUDFLARE_UPLOADS_KV_ID = "6680aff711c64a2ea4366046655c8ddd";
 
 const { d1, r2 } = hostingConfig;
 const isDirectCloudflareDeploy = process.env.CLOUDFLARE_DEPLOY === "1";
@@ -39,6 +40,14 @@ const localBindingConfig = {
         {
           binding: r2,
           bucket_name: "site-creator-r2",
+        },
+      ]
+    : [],
+  kv_namespaces: isDirectCloudflareDeploy
+    ? [
+        {
+          binding: "UPLOADS_KV",
+          id: CLOUDFLARE_UPLOADS_KV_ID,
         },
       ]
     : [],

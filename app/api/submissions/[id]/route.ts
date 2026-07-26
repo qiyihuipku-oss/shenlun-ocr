@@ -1,4 +1,5 @@
 import { advanceOcrRun } from "../../../../lib/ocr-service";
+import { deletePrivateObject } from "../../../../lib/providers";
 import { apiError, ensureSchema, getSubmission, requireOwnerId, runtimeEnv } from "../../../../lib/server";
 
 export async function GET(
@@ -7,7 +8,7 @@ export async function GET(
 ) {
   try {
   const { id } = await params;
-  const ownerId = requireOwnerId(request);
+  const ownerId = await requireOwnerId(request);
   const current = await getSubmission(id, ownerId);
   const submission = current && ["ocr_pending", "ocr_processing"].includes(current.status)
     ? await advanceOcrRun(id, ownerId)
@@ -24,7 +25,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-  const ownerId = requireOwnerId(request);
+  const ownerId = await requireOwnerId(request);
   if (!runtimeEnv.DB) return new Response(null, { status: 204 });
   await ensureSchema();
   const { id } = await params;
@@ -42,7 +43,7 @@ export async function DELETE(
   const objectKeys = [...new Set(pages.flatMap((page) =>
     [page.key, page.originalKey, page.normalizedKey].filter((key): key is string => !!key),
   ))];
-  await Promise.all(objectKeys.map((key) => runtimeEnv.UPLOADS?.delete(key)));
+  await Promise.all(objectKeys.map((key) => deletePrivateObject(key)));
   await runtimeEnv.DB.batch([
     runtimeEnv.DB.prepare("DELETE FROM transcript_revisions WHERE submission_id = ?").bind(id),
     runtimeEnv.DB.prepare("DELETE FROM correction_events WHERE submission_id = ? AND owner_id = ?").bind(id, ownerId),
