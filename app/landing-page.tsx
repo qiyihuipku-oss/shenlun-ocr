@@ -30,24 +30,60 @@ export function LandingPage() {
 
   useEffect(() => {
     let frame = 0;
+    let listening = false;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const compactLayout = window.matchMedia("(max-width: 900px)");
+
     const update = () => {
       frame = 0;
       const element = storyRef.current;
       if (!element) return;
       const rect = element.getBoundingClientRect();
       const range = Math.max(1, element.offsetHeight - window.innerHeight);
-      setProgress(Math.max(0, Math.min(1, -rect.top / range)));
+      const nextProgress = Math.max(0, Math.min(1, -rect.top / range));
+      setProgress((current) => Math.abs(current - nextProgress) < 0.002 ? current : nextProgress);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
-    update();
-    addEventListener("scroll", onScroll, { passive: true });
-    addEventListener("resize", onScroll);
-    return () => {
+
+    const stopListening = () => {
+      if (!listening) return;
+      listening = false;
       removeEventListener("scroll", onScroll);
       removeEventListener("resize", onScroll);
-      if (frame) cancelAnimationFrame(frame);
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    const startListening = () => {
+      if (listening || reducedMotion.matches || compactLayout.matches) return;
+      listening = true;
+      addEventListener("scroll", onScroll, { passive: true });
+      addEventListener("resize", onScroll, { passive: true });
+      onScroll();
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting ? startListening() : stopListening(),
+      { rootMargin: "25% 0px" },
+    );
+    if (storyRef.current) observer.observe(storyRef.current);
+
+    const onPreferenceChange = () => {
+      stopListening();
+      if (!reducedMotion.matches && !compactLayout.matches) startListening();
+    };
+    reducedMotion.addEventListener("change", onPreferenceChange);
+    compactLayout.addEventListener("change", onPreferenceChange);
+
+    return () => {
+      observer.disconnect();
+      reducedMotion.removeEventListener("change", onPreferenceChange);
+      compactLayout.removeEventListener("change", onPreferenceChange);
+      stopListening();
     };
   }, []);
 
@@ -56,7 +92,7 @@ export function LandingPage() {
   return (
     <main className="landing">
       <header className="landing-header">
-        <a className="brand" href="#top" aria-label="申论镜首页">
+        <a className="brand" href="#top">
           <span className="brand-seal">申</span>
           <span><b>申论镜</b><small>SHENLUN MIRROR</small></span>
         </a>
@@ -120,11 +156,11 @@ export function LandingPage() {
                   {item.index} {item.kicker}
                 </button>
               ))}
-              <article>
-                <h2>{scenes[mobileScene].title}</h2>
-                <p>{scenes[mobileScene].body}</p>
-              </article>
             </div>
+            <article className="story-mobile-panel">
+              <h2>{scenes[mobileScene].title}</h2>
+              <p>{scenes[mobileScene].body}</p>
+            </article>
           </div>
 
           <div className={`paper-stage mobile-scene-${mobileScene}`} aria-label="答卷识别过程演示">

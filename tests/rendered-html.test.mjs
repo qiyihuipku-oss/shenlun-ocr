@@ -22,7 +22,7 @@ test("申论镜 has a public product story and a protected workspace", async () 
   assert.match(workspace, /上传答卷/);
   assert.match(workspace, /校对原文/);
   assert.match(workspace, /循证批改/);
-  assert.match(layout, /og-v2\.png/);
+  assert.match(layout, /og-v2\.jpg/);
   assert.doesNotMatch(`${page}${landing}${workspace}${layout}${packageJson}`, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
   await access(new URL("../dist/server/index.js", import.meta.url));
 });
